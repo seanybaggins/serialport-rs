@@ -689,7 +689,7 @@ pub fn new<'a>(path: impl Into<std::borrow::Cow<'a, str>>, baud_rate: u32) -> Se
 /// It is not guaranteed that these ports exist or are available even if they're
 /// returned by this function.
 pub fn available_ports() -> Result<Vec<SerialPortInfo>> {
-    #[cfg(unix)]
+    #[cfg(any(unix, android))]
     return crate::posix::available_ports();
 
     #[cfg(windows)]

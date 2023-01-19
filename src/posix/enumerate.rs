@@ -17,7 +17,8 @@ use IOKit_sys::*;
     target_os = "freebsd",
     target_os = "ios",
     target_os = "linux",
-    target_os = "macos"
+    target_os = "macos",
+    target_os = "android"
 ))]
 use crate::SerialPortType;
 #[cfg(any(
@@ -27,7 +28,6 @@ use crate::SerialPortType;
 ))]
 use crate::UsbPortInfo;
 #[cfg(any(
-    target_os = "android",
     target_os = "ios",
     all(target_os = "linux", not(target_env = "musl"), feature = "libudev"),
     target_os = "macos",
@@ -396,7 +396,7 @@ cfg_if! {
             }
             Ok(vec)
         }
-    } else if #[cfg(target_os = "linux")] {
+    } else if #[cfg(any(target_os = "linux", target_os = "android"))] {
         use std::fs::File;
         use std::io::Read;
         use std::path::Path;
