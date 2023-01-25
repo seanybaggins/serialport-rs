@@ -1,6 +1,9 @@
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 use nix::libc::{c_char, c_void};
-#[cfg(all(target_os = "linux", not(target_env = "musl"), feature = "libudev"))]
+#[cfg(any(
+    all(target_os = "linux", not(target_env = "musl"), feature = "libudev"),
+    target_os = "android"
+))]
 use std::ffi::OsStr;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 use std::ffi::{CStr, CString};
@@ -24,7 +27,8 @@ use crate::SerialPortType;
 #[cfg(any(
     target_os = "ios",
     all(target_os = "linux", not(target_env = "musl"), feature = "libudev"),
-    target_os = "macos"
+    target_os = "macos",
+    target_os = "android"
 ))]
 use crate::UsbPortInfo;
 #[cfg(any(
@@ -33,13 +37,17 @@ use crate::UsbPortInfo;
     target_os = "macos",
     target_os = "netbsd",
     target_os = "openbsd",
+    target_os = "android"
 ))]
 use crate::{Error, ErrorKind};
 use crate::{Result, SerialPortInfo};
 
 /// Retrieves the udev property value named by `key`. If the value exists, then it will be
 /// converted to a String, otherwise None will be returned.
-#[cfg(all(target_os = "linux", not(target_env = "musl"), feature = "libudev"))]
+#[cfg(any(
+    all(target_os = "linux", not(target_env = "musl"), feature = "libudev"),
+    target_os = "android"
+))]
 fn udev_property_as_string(d: &libudev::Device, key: &str) -> Option<String> {
     d.property_value(key)
         .and_then(OsStr::to_str)
@@ -52,7 +60,10 @@ fn udev_property_as_string(d: &libudev::Device, key: &str) -> Option<String> {
 /// will be returned.
 /// This function uses a built-in type's `from_str_radix` to implementation to perform the
 /// actual conversion.
-#[cfg(all(target_os = "linux", not(target_env = "musl"), feature = "libudev"))]
+#[cfg(any(
+    all(target_os = "linux", not(target_env = "musl"), feature = "libudev"),
+    target_os = "android"
+))]
 fn udev_hex_property_as_int<T>(
     d: &libudev::Device,
     key: &str,
@@ -69,7 +80,10 @@ fn udev_hex_property_as_int<T>(
     }
 }
 
-#[cfg(all(target_os = "linux", not(target_env = "musl"), feature = "libudev"))]
+#[cfg(any(
+    all(target_os = "linux", not(target_env = "musl"), feature = "libudev"),
+    target_os = "android"
+))]
 fn port_type(d: &libudev::Device) -> Result<SerialPortType> {
     match d.property_value("ID_BUS").and_then(OsStr::to_str) {
         Some("usb") => {
@@ -362,7 +376,7 @@ cfg_if! {
             }
             Ok(vec)
         }
-    } else if #[cfg(all(target_os = "linux", not(target_env = "musl"), feature = "libudev"))] {
+    } else if #[cfg(any(all(target_os = "linux", not(target_env = "musl"), feature = "libudev"),  target_os = "android"))]{
         /// Scans the system for serial ports and returns a list of them.
         /// The `SerialPortInfo` struct contains the name of the port
         /// which can be used for opening it.
@@ -396,7 +410,7 @@ cfg_if! {
             }
             Ok(vec)
         }
-    } else if #[cfg(any(target_os = "linux", target_os = "android"))] {
+    } else if #[cfg(any(target_os = "linux"))] {
         use std::fs::File;
         use std::io::Read;
         use std::path::Path;
